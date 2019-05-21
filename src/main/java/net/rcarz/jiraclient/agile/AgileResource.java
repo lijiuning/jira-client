@@ -158,7 +158,9 @@ public abstract class AgileResource {
 
         JSON result;
         try {
-            result = restclient.get(url);
+            java.util.Map<String, String> queryParams = new java.util.HashMap<String, String>();
+            queryParams.put("startAt", String.valueOf(30));
+            result = restclient.get(url, queryParams);
         } catch (Exception ex) {
             throw new JiraException("Failed to retrieve a list of " + type.getSimpleName() + " : " + url, ex);
         }

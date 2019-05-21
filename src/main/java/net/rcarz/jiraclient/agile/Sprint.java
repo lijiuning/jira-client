@@ -85,6 +85,7 @@ public class Sprint extends AgileResource {
     @Override
     protected void deserialize(JSONObject json) throws JiraException {
         super.deserialize(json);
+
         state = Field.getString(json.get("state"));
         originBoardId = getLong(json.get("originBoardId"));
         startDate = Field.getDateTime(json.get("startDate"));
@@ -110,6 +111,11 @@ public class Sprint extends AgileResource {
 
     public Date getCompleteDate() {
         return completeDate;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("====== Sprint: %s <%tD -> %tD> (%s) ====== ", getName(), getStartDate(), getEndDate(), getState());
     }
 }
 

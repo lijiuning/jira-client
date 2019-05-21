@@ -19,20 +19,18 @@
 
 package net.rcarz.jiraclient;
 
-import java.io.File;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 import net.rcarz.utils.WorklogUtils;
 import net.sf.json.JSON;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
+
+import java.io.File;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.*;
 
 /**
  * Represents a JIRA issue.
@@ -797,6 +795,13 @@ public class Issue extends Resource {
     private Date updatedDate = null;
     private Security security = null;
 
+    private Double storyPoints = null;
+    private User developer = null;
+    private User codeReviewer = null;
+    private String taskCategory = null;
+    private User defectIntroducedBy = null;
+    private String defectOrigins = null;
+
     /**
      * Creates an issue from a JSON payload.
      *
@@ -851,6 +856,14 @@ public class Issue extends Resource {
         createdDate = Field.getDateTime(fields.get(Field.CREATED_DATE));
         updatedDate = Field.getDateTime(fields.get(Field.UPDATED_DATE));
         security = Field.getResource(Security.class, fields.get(Field.SECURITY), restclient);
+
+        storyPoints = Field.getDouble(fields.get(Field.STORY_POINTS));
+        developer = Field.getResource(User.class, fields.get(Field.DEVELOPER), restclient);
+        codeReviewer = Field.getResource(User.class, fields.get(Field.CODE_REVIEWER), restclient);
+        taskCategory = Field.getString(fields.get(Field.TASK_CATEGORY));
+        defectIntroducedBy = Field.getResource(User.class, fields.get(Field.DEFECT_INTRODUCED_BY), restclient);
+        defectOrigins = Field.getString(fields.get(Field.DEFECT_ORIGINS));
+
     }
 
     private static String getRestUri(String key) {
@@ -1694,6 +1707,38 @@ public class Issue extends Resource {
 
     public Security getSecurity() {
         return security;
+    }
+
+    public Double getStoryPoints() {
+        return storyPoints;
+    }
+
+    public net.rcarz.jiraclient.User getDeveloper() {
+        return developer;
+    }
+
+    public net.rcarz.jiraclient.User getCodeReviewer() {
+        return codeReviewer;
+    }
+
+    public String getTaskCategory() {
+        return taskCategory;
+    }
+
+    public net.rcarz.jiraclient.User getDefectIntroducedBy() {
+        return defectIntroducedBy;
+    }
+
+    public void setDefectIntroducedBy(net.rcarz.jiraclient.User defectIntroducedBy) {
+        this.defectIntroducedBy = defectIntroducedBy;
+    }
+
+    public String getDefectOrigins() {
+        return defectOrigins;
+    }
+
+    public void setDefectOrigins(String defectOrigins) {
+        this.defectOrigins = defectOrigins;
     }
 
     public boolean delete(final boolean deleteSubtasks) throws JiraException {

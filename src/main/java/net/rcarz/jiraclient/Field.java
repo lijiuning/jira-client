@@ -152,7 +152,16 @@ public final class Field {
     public static final String SECURITY = "security";
 
     public static final String DATE_FORMAT = "yyyy-MM-dd";
-    public static final String DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+    public static final String DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSX";
+
+    public static final String STORY_POINTS = "customfield_10242";
+    public static final String DEVELOPER = "customfield_10060";
+    public static final String CODE_REVIEWER = "customfield_11968";
+    public static final String TASK_CATEGORY = "customfield_12868";
+    public static final String DEFECT_INTRODUCED_BY = "customfield_12881";
+    public static final String DEFECT_ORIGINS = "customfield_16561";
+    public static final String SPRINTS = "customfield_11150";
+
 
     private Field() { }
 
