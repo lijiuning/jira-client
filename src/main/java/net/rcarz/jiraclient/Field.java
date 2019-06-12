@@ -19,20 +19,14 @@
 
 package net.rcarz.jiraclient;
 
-import java.lang.Iterable;
-import java.lang.UnsupportedOperationException;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONNull;
+import net.sf.json.JSONObject;
+
 import java.sql.Timestamp;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import net.sf.json.JSONNull;
+import java.util.*;
 
 /**
  * Utility functions for translating between JSON and fields.
@@ -162,6 +156,47 @@ public final class Field {
     public static final String DEFECT_ORIGINS = "customfield_16561";
     public static final String SPRINTS = "customfield_11150";
 
+    public static String[] includeFields = {
+            ASSIGNEE,
+            ATTACHMENT,
+            CHANGE_LOG,
+            CHANGE_LOG_ENTRIES,
+            CHANGE_LOG_ITEMS,
+            COMMENT,
+            COMPONENTS,
+            DESCRIPTION,
+            DUE_DATE,
+            FIX_VERSIONS,
+            ISSUE_LINKS,
+            ISSUE_TYPE,
+            LABELS,
+            PARENT,
+            PRIORITY,
+            PROJECT,
+            REPORTER,
+            RESOLUTION,
+            RESOLUTION_DATE,
+            STATUS,
+            SUBTASKS,
+            SUMMARY,
+            TIME_TRACKING,
+            VERSIONS,
+            VOTES,
+            WATCHES,
+            WORKLOG,
+            TIME_ESTIMATE,
+            TIME_SPENT,
+            CREATED_DATE,
+            UPDATED_DATE,
+            TRANSITION_TO_STATUS,
+            SECURITY,
+            STORY_POINTS,
+            DEVELOPER,
+            CODE_REVIEWER,
+            TASK_CATEGORY,
+            DEFECT_INTRODUCED_BY,
+            DEFECT_ORIGINS,
+            SPRINTS};
 
     private Field() { }
 

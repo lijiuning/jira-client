@@ -9,6 +9,11 @@ public class CommandArgs {
 		return sprint;
 	}
 
+	@CommandLineParameter(value = "t", required = true) private int team;
+	public int getTeam() {
+		return team;
+	}
+
 	@CommandLineParameter(value = "v") private boolean verify;
 	public boolean isVerify() {
 		return verify;

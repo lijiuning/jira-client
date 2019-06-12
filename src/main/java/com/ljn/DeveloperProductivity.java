@@ -29,11 +29,11 @@ public class DeveloperProductivity {
 
     List<Issue> issues;
 
-    public java.util.List<net.rcarz.jiraclient.Issue> getDefects() {
+    public List<Issue> getDefects() {
         return defects;
     }
 
-    public void setDefects(java.util.List<net.rcarz.jiraclient.Issue> defects) {
+    public void setDefects(List<Issue> defects) {
         this.defects = defects;
     }
 
@@ -131,7 +131,7 @@ public class DeveloperProductivity {
 
     @Override
     public String toString() {
-        String formatStr = "Developer: %s, Bug: %.1f (%d), ER: %.1f (%d), Task: %.1f (%d), total:%.1f (%d) -- ISD count: (%d)";
-        return String.format(formatStr, developer, bugStoryPoints, bugCount, erStoryPoints, erCount, taskStoryPoints, taskCount, getTotalSP(), getTotalCount(), isdCount);
+        String formatStr = "[%s] Bug: %.1fSP (%d), ER: %.1fSP (%d), Task: %.1fSP (%d)  <total: %.1fSP (%d), ISD: %d, QF: %.2f>";
+        return String.format(formatStr, developer, bugStoryPoints, bugCount, erStoryPoints, erCount, taskStoryPoints, taskCount, getTotalSP(), getTotalCount(), isdCount, getISDPerSP());
     }
 }

@@ -3,6 +3,7 @@ package com.ljn;
 import net.rcarz.jiraclient.Issue;
 import net.rcarz.jiraclient.IssueType;
 import net.rcarz.jiraclient.Resolution;
+import net.rcarz.jiraclient.User;
 
 import java.util.List;
 
@@ -12,23 +13,23 @@ public class SprintChecker {
         if (issues.isEmpty())
             return;
 
-        System.out.println("=======================================");
-        System.out.println("Checking Story Points ....");
+        System.out.println("========================: CHECKING SPRINT :====================================");
+        System.out.println("Checking story points ....");
         for (Issue issue : issues) {
             checkStoryPointIsEmpty(issue);
         }
 
-        System.out.println("Checking Developer ....");
+        System.out.println("Checking developers ....");
         for (Issue issue : issues) {
             checkDeveloperIsEmpty(issue);
         }
 
-        System.out.println("Checking Code Reviewer ....");
+        System.out.println("Checking code reviewers ....");
         for (Issue issue : issues) {
             checkCodeReviewerIsEmpty(issue);
         }
-        System.out.println("Checking Done.");
-        System.out.println("=======================================");
+        System.out.println("=======================: CHECKING SPRINT DONE :================================");
+        System.out.println();
     }
 
     private static void checkCodeReviewerIsEmpty(Issue issue) {
@@ -72,7 +73,7 @@ public class SprintChecker {
     private static void checkStoryPointIsEmpty(Issue issue) {
         Double sp = issue.getStoryPoints();
         if (sp == null) {
-            printLog(issue, "SP is empty! (Issue type: " + issue.getIssueType().getName() + ")");
+            printLog(issue, "Story point is empty! (Issue type: " + issue.getIssueType().getName() + ")");
         }
     }
 
@@ -84,21 +85,25 @@ public class SprintChecker {
                 return;
             }
         }
-        net.rcarz.jiraclient.User dev = issue.getDeveloper();
+        User dev = issue.getDeveloper();
         if (dev == null) {
             printLog(issue, "Developer is empty!");
         }
     }
 
     private static void CheckCodeReviewerIsEmpty(Issue issue) {
-        net.rcarz.jiraclient.User codereviewer = issue.getCodeReviewer();
+        User codereviewer = issue.getCodeReviewer();
         if (codereviewer == null) {
             printLog(issue, "Code reviewer is empty!");
         }
     }
 
     public static void printLog(Issue issue, String log) {
-        String format = String.format("%s/browse/%s   [%s] %s  %s", JiraHelper.JIRA_URL, issue.getKey(), issue.getIssueType(), issue.getSummary(), log);
+        String description = "";
+        if(!issue.getIssueType().getName().contains("Sub"))
+            description += String.format("(%.1f)", issue.getStoryPoints());
+
+        String format = String.format("%s %s/browse/%s\t %s %s %s\t%s", Emoji.Type(issue.getIssueType().getName()), JiraHelper.JIRA_URL, issue.getKey(), Emoji.Status(issue.getStatus().getName()),  description, issue.getSummary(), log);
         System.out.println(format);
     }
 }

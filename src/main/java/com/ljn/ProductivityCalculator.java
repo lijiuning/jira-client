@@ -9,9 +9,6 @@ import java.util.List;
 public class ProductivityCalculator {
 
     public static List<DeveloperProductivity> Run(List<Issue> issues){
-        return Run(issues, false);
-    }
-    public static List<DeveloperProductivity> Run(List<Issue> issues, boolean printlog){
         if (issues.isEmpty())
             return new ArrayList<>();
 
@@ -23,9 +20,6 @@ public class ProductivityCalculator {
             //empty developer
             if(issue.getDeveloper() == null)
             {
-                if(printlog)
-                    com.ljn.SprintChecker.printLog(issue, "developer is empty!");
-
                 if(issue.getStoryPoints() == null || issue.getStoryPoints() <= 0){
                     continue;
                 }else{
@@ -48,6 +42,7 @@ public class ProductivityCalculator {
             pu.setType(type.getName());
             pu.setStoryPoints(issue.getStoryPoints());
             pu.setIssue(issue);
+
             map.get(developer).add(pu);
 
         }
@@ -63,9 +58,9 @@ public class ProductivityCalculator {
             int bugCount = 0;
             int taskCount = 0;
             int erCount = 0;
-            DeveloperProductivity dp = new DeveloperProductivity(dev, task_sp, bug_sp, feature_enhancement_sp);
+            List<Issue> allissue = new java.util.ArrayList<>();
             for (ProductivityUnit pu : list) {
-                dp.getIssues().add(pu.getIssue());
+                allissue.add(pu.getIssue());
                 switch (pu.type) {
                     case "Bug":
                         bug_sp += pu.storyPoints;
@@ -85,7 +80,8 @@ public class ProductivityCalculator {
                 }
             }
 
-
+            DeveloperProductivity dp = new DeveloperProductivity(dev, task_sp, bug_sp, feature_enhancement_sp);
+            dp.setIssues(allissue);
             dp.taskCount = taskCount;
             dp.bugCount = bugCount;
             dp.erCount = erCount;
@@ -95,15 +91,8 @@ public class ProductivityCalculator {
 
         developerPro.sort(java.util.Comparator.comparing(h -> h.developer));
 
-        if(printlog)
-        {
-            for(DeveloperProductivity dp : developerPro) {
-                System.out.println(dp.toString());
-                for(Issue issue : dp.getIssues()){
-                    SprintChecker.printLog(issue, "");
-                }
-            }
-        }
+
+
         return developerPro;
 
     }

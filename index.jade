@@ -1,0 +1,21 @@
+doctype html
+html
+  head
+    title=pageName
+    link(rel="stylesheet",href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css")
+    script(src="https://code.jquery.com/jquery-3.3.1.slim.min.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js")
+    script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js")
+    meta(name="viewport",content="width=device-width,initial-scale=1,shrink-to-fit=no")
+  body
+    h1=pageName
+    ol#productivity
+        for pro in products
+            #accordionExample.accordion
+                .card
+                    #headingOne.card-header
+                        h2.mb-0
+                            button.btn.btn-link(type="button",data-toggle="collapse",data-target="#collapse{i}",aria-expanded="true",aria-controls="collapseOne")=pro.developer
+                    #collapse{i}.collapse.show(aria-labelledby="headingOne" data-parent="#accordionExample")
+                        .card-body
+                            pro

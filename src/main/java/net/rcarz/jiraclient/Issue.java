@@ -866,6 +866,9 @@ public class Issue extends Resource {
 
     }
 
+    public static String getIncludeFields(){
+        return "";
+    }
     private static String getRestUri(String key) {
         return getBaseUri() + "issue/" + (key != null ? key : "");
     }
@@ -1710,7 +1713,7 @@ public class Issue extends Resource {
     }
 
     public Double getStoryPoints() {
-        return storyPoints;
+        return storyPoints==null ? 0 :storyPoints;
     }
 
     public net.rcarz.jiraclient.User getDeveloper() {

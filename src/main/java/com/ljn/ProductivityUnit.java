@@ -7,11 +7,11 @@ public class ProductivityUnit {
     double storyPoints;
     String type;
 
-    public net.rcarz.jiraclient.Issue getIssue() {
+    public Issue getIssue() {
         return issue;
     }
 
-    public void setIssue(net.rcarz.jiraclient.Issue issue) {
+    public void setIssue(Issue issue) {
         this.issue = issue;
     }
 
