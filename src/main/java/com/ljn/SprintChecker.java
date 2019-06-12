@@ -5,6 +5,7 @@ import net.rcarz.jiraclient.IssueType;
 import net.rcarz.jiraclient.Resolution;
 import net.rcarz.jiraclient.User;
 
+import java.text.DateFormat;
 import java.util.List;
 
 public class SprintChecker {
@@ -103,7 +104,14 @@ public class SprintChecker {
         if(!issue.getIssueType().getName().contains("Sub"))
             description += String.format("(%.1f)", issue.getStoryPoints());
 
-        String format = String.format("%s %s/browse/%s\t %s %s %s\t%s", Emoji.Type(issue.getIssueType().getName()), JiraHelper.JIRA_URL, issue.getKey(), Emoji.Status(issue.getStatus().getName()),  description, issue.getSummary(), log);
+        String overdue_str = "";
+        if(!issue.isDone() && issue.getDueDate() == null)
+        {
+            overdue_str +="\uD83D\uDD14 \t";
+        }else if(issue.isOverdue()){
+            overdue_str +="\uD83D\uDD14 <" + DateFormat.getDateInstance(DateFormat.DEFAULT).format(issue.getDueDate()) + "> ";
+        }
+        String format = String.format("%s%s/browse/%s %s %s %s %s %s", Emoji.Type(issue.getIssueType().getName()), JiraHelper.JIRA_URL, issue.getKey(), Emoji.Status(issue.getStatus().getName()),   description, issue.getSummary(),overdue_str, log);
         System.out.println(format);
     }
 }

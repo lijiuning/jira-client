@@ -10,7 +10,7 @@ public class Emoji {
             case "in progress":
                 return "\uD83D\uDD35";
             case "closed":
-                return "✅";
+                return "\uD83C\uDFC1";
             case "coding":
                 return "\uD83D\uDD35";
             case "code review":
@@ -30,6 +30,8 @@ public class Emoji {
                 return "☘";
             case "task":
                 return "⚡";
+            case "bug sub-task":
+                return "\uD83D\uDC1B";
             default:
                 return type;
         }

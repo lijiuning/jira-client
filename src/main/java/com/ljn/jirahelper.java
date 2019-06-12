@@ -117,8 +117,6 @@ public class JiraHelper {
         if(!prod_list.isEmpty() && !isd_map.isEmpty())
             attachISDtoProductivity(prod_list, isd_map);
 
-        checkOverDue(prod_list, isd_map, defects);
-
         printReport(prod_list, isd_map, defects);
 
 
@@ -131,37 +129,6 @@ public class JiraHelper {
 
     }
 
-    private static void overdue(Issue issue){
-        Date now = new Date();
-
-        if(issue.getStatus().getName().toLowerCase().equals("closed") || issue.getStatus().getName().toLowerCase().equals("test")){
-            return;
-        }
-        if(issue.getDueDate() == null)
-        {
-            SprintChecker.printLog(issue, " due date is EMPTY!");
-        }else if(issue.getDueDate().before(now)) {
-            SprintChecker.printLog(issue, " is OVER due!"  + issue.getDueDate());
-
-        }
-    }
-    private static void checkOverDue(List<DeveloperProductivity> prod_list, Map<String, List<Issue>> isd_map, List<Issue> defects) {
-        System.out.println("Checking due-dates...");
-        System.out.println("-------------- Sprint commitment -----------------");
-        for(DeveloperProductivity dp : prod_list) {
-            for(Issue issue : dp.getIssues()){
-                overdue(issue);
-            }
-        }
-
-        System.out.println("-------------- In-sprint defects -----------------");
-        for(String dcb : isd_map.keySet()){
-            List<Issue> isds = isd_map.get(dcb);
-            for(Issue i : isds){
-                overdue(i);
-            }
-        }
-    }
 
     private static void printReport(List<DeveloperProductivity> prod_list, Map<String, List<Issue>> isd_map, List<Issue> defects) {
         System.out.println("=======================:  Productivity  :======================================");

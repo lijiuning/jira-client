@@ -1757,5 +1757,24 @@ public class Issue extends Resource {
         return result;
     }
 
+    public boolean isDone(){
+        if(this.getStatus().getName().toLowerCase().equals("closed") || this.getStatus().getName().toLowerCase().equals("test")){
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isOverdue(){
+        Date now = new Date();
+
+        if(isDone()){
+            return false;
+        }
+        if(this.getDueDate() != null && this.getDueDate().before(now)) {
+            return true;
+        }
+
+        return false;
+    }
 }
 

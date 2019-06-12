@@ -15,7 +15,7 @@ public class ProductivityCalculator {
         HashMap<String, ArrayList<ProductivityUnit>> map = new java.util.HashMap<>();
 
         for (Issue issue : issues) {
-            String developer = "[Unknown]";
+            String developer = "Unknown";
 
             //empty developer
             if(issue.getDeveloper() == null)
@@ -24,7 +24,7 @@ public class ProductivityCalculator {
                     continue;
                 }else{
                     if(issue.getTaskCategory() != null && issue.getTaskCategory().equals("QA")){
-                        developer = "[QA]";
+                        developer = "QA";
                     }
                 }
             }else {
