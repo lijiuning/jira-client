@@ -111,7 +111,7 @@ public class SprintChecker {
         }else if(issue.isOverdue()){
             overdue_str +="\uD83D\uDD14 <" + DateFormat.getDateInstance(DateFormat.DEFAULT).format(issue.getDueDate()) + "> ";
         }
-        String format = String.format("%s%s/browse/%s %s %s %s %s %s", Emoji.Type(issue.getIssueType().getName()), JiraHelper.JIRA_URL, issue.getKey(), Emoji.Status(issue.getStatus().getName()),   description, issue.getSummary(),overdue_str, log);
+        String format = String.format("%s\t%s/browse/%s %s %s %s %s %s", Emoji.Type(issue.getIssueType().getName()), JiraHelper.JIRA_URL, issue.getKey(), Emoji.Status(issue.getStatus().getName()),   description, issue.getSummary(),overdue_str, log);
         System.out.println(format);
     }
 }

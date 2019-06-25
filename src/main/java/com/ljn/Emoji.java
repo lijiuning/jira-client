@@ -4,6 +4,7 @@ public class Emoji {
     public static String Status(String status){
         switch (status.toLowerCase()){
             case "test":
+            case "review":
                 return "\uD83D\uDD36";
             case "open":
                 return "⚪";
