@@ -1,8 +1,7 @@
 package com.ljn;
 
+import com.ljn.utils.Emoji;
 import net.rcarz.jiraclient.Issue;
-import net.rcarz.jiraclient.IssueType;
-import net.rcarz.jiraclient.Resolution;
 import net.rcarz.jiraclient.User;
 
 import java.text.DateFormat;
@@ -29,46 +28,26 @@ public class SprintChecker {
         for (Issue issue : issues) {
             checkCodeReviewerIsEmpty(issue);
         }
+
+        System.out.println("Checking testers ....");
+        for (Issue issue : issues) {
+            checkTesterIsEmpty(issue);
+        }
+
         System.out.println("=======================: CHECKING SPRINT DONE :================================");
         System.out.println();
     }
 
     private static void checkCodeReviewerIsEmpty(Issue issue) {
-        IssueType type = issue.getIssueType();
-
-        if (type != null) {
-            switch (type.getName()) {
-                case "Bug":
-                    Resolution resolution = issue.getResolution();
-                    if (resolution != null) {
-                        if (resolution.getName().equals("Fixed") || resolution.getName().equals("Unresolved")) {
-                            CheckCodeReviewerIsEmpty(issue);
-                        }
-                    }
-                    break;
-                case "Enhancement":
-                case "Requirement/User Story":
-                    CheckCodeReviewerIsEmpty(issue);
-                    break;
-                case "Task":
-                    if (isDevTask(issue)) {
-                        CheckCodeReviewerIsEmpty(issue);
-                    }
-                    break;
-                default:
-                    break;
-            }
+        if(issue.isCodeReviewerRequired() && issue.getCodeReviewer() == null){
+            printLog(issue, "Code reviewer is empty!" + (issue.getDeveloper() == null? "[EmptyDeveloper]" : "[" + issue.getDeveloper().getDisplayName() + "]"));
         }
     }
 
-    private static boolean isDevTask(Issue issue) {
-        String category = issue.getTaskCategory();
-
-        if (category != null) {
-            if (category.equals("Development"))
-                return true;
+    private static void checkTesterIsEmpty(Issue issue){
+        if(issue.isTesterRequired() && issue.getTester() == null){
+            printLog(issue, "Tester is empty!");
         }
-        return false;
     }
 
     private static void checkStoryPointIsEmpty(Issue issue) {
@@ -80,26 +59,30 @@ public class SprintChecker {
 
     private static void checkDeveloperIsEmpty(Issue issue) {
         // skip the non-development tasks
-        IssueType type = issue.getIssueType();
-        if (type != null && type.getName().equals("Task")) {
-            if (!isDevTask(issue)) {
-                return;
-            }
+        if(!issue.isDevTask())
+            return;
+
+        //skip the dev misc
+        if(issue.isDevTask() && issue.getSummary().toLowerCase().contains("misc")){
+            return;
         }
+
         User dev = issue.getDeveloper();
         if (dev == null) {
             printLog(issue, "Developer is empty!");
         }
     }
 
-    private static void CheckCodeReviewerIsEmpty(Issue issue) {
-        User codereviewer = issue.getCodeReviewer();
-        if (codereviewer == null) {
-            printLog(issue, "Code reviewer is empty!");
-        }
+
+    public static void printLog(Issue issue, String log){
+        printLog(issue, log, 0);
     }
 
-    public static void printLog(Issue issue, String log) {
+    public static void printLog(Issue issue, String log, int level) {
+        String level_str = "";
+        while(level-->0){
+            level_str+='\t';
+        }
         String description = "";
         if(!issue.getIssueType().getName().contains("Sub"))
             description += String.format("(%.1f)", issue.getStoryPoints());
@@ -111,7 +94,7 @@ public class SprintChecker {
         }else if(issue.isOverdue()){
             overdue_str +="\uD83D\uDD14 <" + DateFormat.getDateInstance(DateFormat.DEFAULT).format(issue.getDueDate()) + "> ";
         }
-        String format = String.format("%s\t%s/browse/%s %s %s %s %s %s", Emoji.Type(issue.getIssueType().getName()), JiraHelper.JIRA_URL, issue.getKey(), Emoji.Status(issue.getStatus().getName()),   description, issue.getSummary(),overdue_str, log);
+        String format = String.format(level_str + "%s\t%s/browse/%s %s %s %s %s %s", Emoji.Type(issue.getIssueType().getName()), JiraHelper.JIRA_URL, issue.getKey(), Emoji.Status(issue.getStatus().getName()),   description, issue.getSummary(),overdue_str, log);
         System.out.println(format);
     }
 }

@@ -1,4 +1,4 @@
-package com.ljn;
+package com.ljn.utils;
 
 import java.util.*;
 

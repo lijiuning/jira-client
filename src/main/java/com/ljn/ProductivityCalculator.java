@@ -1,6 +1,7 @@
 package com.ljn;
 
 import net.rcarz.jiraclient.Issue;
+import net.rcarz.jiraclient.IssueType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ public class ProductivityCalculator {
 
         HashMap<String, ArrayList<ProductivityUnit>> map = new java.util.HashMap<>();
 
+        //group by developer
         for (Issue issue : issues) {
             String developer = "Unknown";
 
@@ -37,7 +39,7 @@ public class ProductivityCalculator {
             }
 
             ProductivityUnit pu = new ProductivityUnit();
-            net.rcarz.jiraclient.IssueType type = issue.getIssueType();
+            IssueType type = issue.getIssueType();
             pu.setDeveloper(developer);
             pu.setType(type.getName());
             pu.setStoryPoints(issue.getStoryPoints());

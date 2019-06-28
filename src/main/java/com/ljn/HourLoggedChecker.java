@@ -52,7 +52,10 @@ public class HourLoggedChecker {
             Collections.sort(worklist, (o1, o2) -> Long.compare(o2.getValue().getLoggedSeconds(), o1.getValue().getLoggedSeconds()));
 
             worklist.forEach(p->{
-                System.out.println(p.getValue() + "  Out of sprint: (" + outOfSprintWorklogs.get(p.getKey()).getLoggedSeconds()/60/60 + " hrs)");
+                //long inSprintHours = worklogs.get(p.getKey()).getLoggedSeconds()/60/60;
+                //long outSprintHours = outOfSprintWorklogs.get(p.getKey()).getLoggedSeconds()/60/60;
+
+                System.out.println(p.getValue() + "  out of sprint: (" + outOfSprintWorklogs.get(p.getKey()).getLoggedSeconds()/60/60 + " hrs)");
             });
 
 

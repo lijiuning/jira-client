@@ -4,6 +4,16 @@ import net.rcarz.jiraclient.Issue;
 
 public class ProductivityUnit {
     String developer;
+    String tester;
+
+    public String getTester() {
+        return tester;
+    }
+
+    public void setTester(String tester) {
+        this.tester = tester;
+    }
+
     double storyPoints;
     String type;
 
@@ -39,5 +49,6 @@ public class ProductivityUnit {
     public void setType(String type) {
         this.type = type;
     }
+
 
 }

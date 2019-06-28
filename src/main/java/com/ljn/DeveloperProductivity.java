@@ -6,6 +6,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DeveloperProductivity {
+    String developer;
+    int taskCount;
+    int erCount;
+    int bugCount;
+    List<Issue> issues;
+    List<Issue> defects;
+    int isdCount;
+    double taskStoryPoints;
+    double erStoryPoints;
+    double bugStoryPoints;
+
+
     public DeveloperProductivity(String name, double ts, double bs, double es) {
         this.developer = name;
         this.taskStoryPoints = ts;
@@ -15,10 +27,6 @@ public class DeveloperProductivity {
         defects = new ArrayList<>();
     }
 
-    String developer;
-    double taskStoryPoints;
-    int taskCount;
-
     public List<Issue> getIssues() {
         return issues;
     }
@@ -26,8 +34,6 @@ public class DeveloperProductivity {
     public void setIssues(List<Issue> issues) {
         this.issues = issues;
     }
-
-    List<Issue> issues;
 
     public List<Issue> getDefects() {
         return defects;
@@ -37,7 +43,6 @@ public class DeveloperProductivity {
         this.defects = defects;
     }
 
-    List<Issue> defects;
     public int getIsdCount() {
         return isdCount;
     }
@@ -46,7 +51,7 @@ public class DeveloperProductivity {
         this.isdCount = isdCount;
     }
 
-    int isdCount;
+
 
     public int getTaskCount() {
         return taskCount;
@@ -71,9 +76,6 @@ public class DeveloperProductivity {
     public void setBugCount(int bugCount) {
         this.bugCount = bugCount;
     }
-
-    int erCount;
-    int bugCount;
 
     public String getDeveloper() {
         return developer;
@@ -106,6 +108,7 @@ public class DeveloperProductivity {
             return (double)getIsdCount()/(double)getTestedSP();
         }
     }
+
     public void setTaskStoryPoints(double taskStoryPoints) {
         this.taskStoryPoints = taskStoryPoints;
     }
@@ -126,8 +129,7 @@ public class DeveloperProductivity {
         this.bugStoryPoints = bugStoryPoints;
     }
 
-    double erStoryPoints;
-    double bugStoryPoints;
+
 
     @Override
     public String toString() {

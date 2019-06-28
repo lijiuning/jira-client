@@ -1,4 +1,4 @@
-package com.ljn;
+package com.ljn.utils;
 
 import de.objektkontor.clp.annotation.CommandLineParameter;
 

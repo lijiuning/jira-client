@@ -155,6 +155,7 @@ public final class Field {
     public static final String DEFECT_INTRODUCED_BY = "customfield_12881";
     public static final String DEFECT_ORIGINS = "customfield_16561";
     public static final String SPRINTS = "customfield_11150";
+    public static final String TESTER = "customfield_10025";
 
     public static String[] includeFields = {
             ASSIGNEE,
@@ -196,7 +197,9 @@ public final class Field {
             TASK_CATEGORY,
             DEFECT_INTRODUCED_BY,
             DEFECT_ORIGINS,
-            SPRINTS};
+            SPRINTS,
+            TESTER
+    };
 
     private Field() { }
 
@@ -467,6 +470,8 @@ public final class Field {
                 result = (T)new WorkLog(restclient, (JSONObject)r);
             else if (type == Security.class)
                 result = (T)new Security(restclient, (JSONObject)r);
+            else if (type == TaskCategory.class)
+                result = (T)new TaskCategory(restclient, (JSONObject)r);
         }
 
         return result;

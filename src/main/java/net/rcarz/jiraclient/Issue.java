@@ -19,6 +19,8 @@
 
 package net.rcarz.jiraclient;
 
+import com.ljn.JiraHelper;
+import com.ljn.utils.Emoji;
 import net.rcarz.utils.WorklogUtils;
 import net.sf.json.JSON;
 import net.sf.json.JSONArray;
@@ -30,6 +32,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.DateFormat;
 import java.util.*;
 
 /**
@@ -798,9 +801,10 @@ public class Issue extends Resource {
     private Double storyPoints = null;
     private User developer = null;
     private User codeReviewer = null;
-    private String taskCategory = null;
+    private TaskCategory taskCategory = null;
     private User defectIntroducedBy = null;
     private String defectOrigins = null;
+    private User tester = null;
 
     /**
      * Creates an issue from a JSON payload.
@@ -860,9 +864,10 @@ public class Issue extends Resource {
         storyPoints = Field.getDouble(fields.get(Field.STORY_POINTS));
         developer = Field.getResource(User.class, fields.get(Field.DEVELOPER), restclient);
         codeReviewer = Field.getResource(User.class, fields.get(Field.CODE_REVIEWER), restclient);
-        taskCategory = Field.getString(fields.get(Field.TASK_CATEGORY));
+        taskCategory = Field.getResource(TaskCategory.class,fields.get(Field.TASK_CATEGORY), restclient);
         defectIntroducedBy = Field.getResource(User.class, fields.get(Field.DEFECT_INTRODUCED_BY), restclient);
         defectOrigins = Field.getString(fields.get(Field.DEFECT_ORIGINS));
+        tester = Field.getResource(User.class, fields.get(Field.TESTER), restclient);
 
     }
 
@@ -1557,7 +1562,76 @@ public class Issue extends Resource {
 
     @Override
     public String toString() {
-        return getKey();
+        if(this.isStandardType())
+            return standardTypeIssueDescription();
+
+        if(this.isBugSubTask())
+            return inSprintDefectDescription();
+
+      return this.getKey();
+    }
+
+    public boolean isStandardType(){
+        IssueType type = this.getIssueType();
+
+        if (type != null) {
+            switch (type.getName()) {
+                case "Bug":
+                case "Enhancement":
+                case "Requirement/User Story":
+                case "Task":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+        return false;
+    }
+
+    public boolean isBugSubTask(){
+        IssueType type = this.getIssueType();
+
+        if (type != null) {
+            switch (type.getName()) {
+                case "Bug Sub-Task":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+        return false;
+    }
+
+    private String standardTypeIssueDescription(){
+        String description = "";
+        if(!getIssueType().getName().contains("Sub"))
+            description += String.format("(%2.1f)", getStoryPoints());
+
+        String overdue_str = "";
+        if(!isDone() && getDueDate() == null)
+        {
+            overdue_str +="\uD83D\uDD14 \t";
+        }else if(isOverdue()){
+            overdue_str +="\uD83D\uDD14 <" + DateFormat.getDateInstance(DateFormat.DEFAULT).format(getDueDate()) + "> ";
+        }
+        return String.format("%s\t%s/browse/%s %s %s %s. %s", Emoji.Type(getIssueType().getName()), JiraHelper.JIRA_URL, getKey(), Emoji.Status(getStatus().getName()), description, getSummary(), overdue_str);
+    }
+
+    private String inSprintDefectDescription(){
+        String description = "";
+        String overdue_str = "";
+        if(!isDone() && getDueDate() == null)
+        {
+            overdue_str +="\uD83D\uDD14 \t";
+        }else if(isOverdue()){
+            overdue_str +="\uD83D\uDD14 <" + DateFormat.getDateInstance(DateFormat.DEFAULT).format(getDueDate()) + "> ";
+        }
+
+        String extraInfo = "["+ (getAssignee() == null ? "Unassigned" : getAssignee().getDisplayName())
+                + "] ["+ (getResolution() == null ? "Unresolved" : getResolution().getName()) + "] ["
+                + (getDefectIntroducedBy() == null ? "Empty Defect Introduced by" : getDefectIntroducedBy().getDisplayName()) + "]";
+
+        return String.format("\t|----%s\t%s/browse/%s %s %s %s %s %s", Emoji.Type(getIssueType().getName()), JiraHelper.JIRA_URL, getKey(), Emoji.Status(getStatus().getName()), description, getSummary(), overdue_str, extraInfo);
     }
 
     public ChangeLog getChangeLog() {
@@ -1716,23 +1790,25 @@ public class Issue extends Resource {
         return storyPoints==null ? 0 :storyPoints;
     }
 
-    public net.rcarz.jiraclient.User getDeveloper() {
+    public User getDeveloper() {
         return developer;
     }
 
-    public net.rcarz.jiraclient.User getCodeReviewer() {
+    public User getCodeReviewer() {
         return codeReviewer;
     }
 
-    public String getTaskCategory() {
+    public User getTester(){return tester;}
+
+    public TaskCategory getTaskCategory() {
         return taskCategory;
     }
 
-    public net.rcarz.jiraclient.User getDefectIntroducedBy() {
+    public User getDefectIntroducedBy() {
         return defectIntroducedBy;
     }
 
-    public void setDefectIntroducedBy(net.rcarz.jiraclient.User defectIntroducedBy) {
+    public void setDefectIntroducedBy(User defectIntroducedBy) {
         this.defectIntroducedBy = defectIntroducedBy;
     }
 
@@ -1776,5 +1852,110 @@ public class Issue extends Resource {
 
         return false;
     }
+
+    public boolean isDevTask() {
+        if(this.taskCategory == null)
+            return false;
+
+        String category = this.getTaskCategory().getValue();
+
+        if (category != null) {
+            if (category.equals("Development"))
+                return true;
+        }
+        return false;
+    }
+
+    public boolean isQATask() {
+        if(this.taskCategory == null)
+            return false;
+
+        String category = this.getTaskCategory().getValue();
+
+        if (category != null) {
+            if (category.equals("QA"))
+                return true;
+        }
+        return false;
+    }
+
+    public boolean isResolved(){
+        if(getResolution() == null)
+            return false;
+
+        return !getResolution().equals("Unresolved");
+    }
+
+    public boolean isFixed(){
+        if(getResolution() == null)
+            return false;
+
+        return getResolution().equals("Fixed");
+    }
+
+
+    public boolean isValidBug(){
+        if(getResolution() == null)
+            return false;
+
+        switch (getResolution().getName()){
+            case "Fixed":
+            case "Won't Fix":
+            case "Enhancement Created":
+                return true;
+            case "Unresolved":
+                return false;
+            default:
+                return false;
+        }
+    }
+
+    public String checkFieldForISD(){
+        if(this.isFixed()){
+            if(this.getDefectIntroducedBy() == null){
+                return "error: defect introduced by EMPTY!";
+            }
+            else if(this.getDefectIntroducedBy().getDisplayName().equals("Not Applicable")){
+                return "error: defect introduced by " + this.getDefectIntroducedBy().getDisplayName();
+            }
+        }else if(this.isValidBug()){
+            if(this.getDefectIntroducedBy() == null){
+                return "error: defect introduced by EMPTY!";
+            }
+        }
+        return "";
+    }
+
+
+    public boolean isCodeReviewerRequired(){
+        if(isQATask())
+            return false;
+
+        if(isDevTask()){
+            if(getSummary().toLowerCase().contains("misc")){
+                return false;
+            }
+        }
+
+        if(this.issueType.getName().equals("Bug") && !isFixed())
+            return false;
+
+        return true;
+    }
+
+    public boolean isTesterRequired(){
+        if(this.isBugSubTask())
+            return true;
+
+        if(isStandardType()){
+            if(isDevTask() || isQATask()){
+                return false;
+            }else{
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
 

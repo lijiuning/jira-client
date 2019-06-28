@@ -1,5 +1,8 @@
 package com.ljn;
 
+import com.ljn.utils.CommandArgs;
+import com.ljn.utils.SysPath;
+import com.ljn.utils.WorkdayUtils;
 import de.neuland.jade4j.Jade4J;
 import de.objektkontor.clp.InvalidParameterException;
 import de.objektkontor.clp.Parser;
@@ -15,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class JiraHelper {
@@ -30,12 +34,13 @@ public class JiraHelper {
 
         initProperties();
 
-        Parser<com.ljn.CommandArgs> parser = new Parser<>("args", CommandArgs.class);
+        Parser<CommandArgs> parser = new Parser<>("args", CommandArgs.class);
         CommandArgs testParameter = null;
         try {
             testParameter = parser.parse(new CommandArgs(), args);
         } catch (InvalidParameterException e) {
             e.printStackTrace();
+            return;
         }
 
         //get sprint number
@@ -92,13 +97,10 @@ public class JiraHelper {
         }
 
         List<Issue> issues = sr.issues;
-
         if(testParameter.isVerify())
             SprintChecker.checkFields(issues);
 
-        List<com.ljn.DeveloperProductivity> prod_list = new java.util.ArrayList<>();
 
-        Map<String, List<Issue>> isd_map = new HashMap<>();
         List<Issue> defects = null;
         try {
             String isdjql = String.format(JQL_IN_SPRINT_DEFECTS, (int)sprint.getId());
@@ -107,59 +109,99 @@ public class JiraHelper {
             e.printStackTrace();
         }
 
-        if(testParameter.isProd() || testParameter.isExport()) {
-            prod_list = ProductivityCalculator.Run(issues);
-        }
+        Map<String, DeveloperView> dvs = getDeveloperView(issues, defects);
+        System.out.println();
+        System.out.println("========================:     DEV VIEW    :====================================");
+        dvs.values().stream().forEach(p->p.printReport());
 
-        if(testParameter.isIsd() || testParameter.isExport())
-            isd_map = getISD(defects);
+        printDefectReport(defects);
 
-        if(!prod_list.isEmpty() && !isd_map.isEmpty())
-            attachISDtoProductivity(prod_list, isd_map);
 
-        printReport(prod_list, isd_map, defects);
-
+        Map<String, TesterView> tvs = getTesterView(issues, defects);
+        System.out.println();
+        System.out.println("========================:     QA VIEW    :====================================");
+        tvs.values().stream().forEach(p->p.printReport());
 
         if(testParameter.isExport())
-            exportProdData(sprint, prod_list);
-
+            exportProdData(sprint, dvs);
 
         HourLoggedChecker loggedChecker = new HourLoggedChecker(sprint, jira);
+        System.out.println("========================:   LOGGED HOURS  :====================================");
         loggedChecker.Run();
 
+
+        System.out.println("========================:   REPORT END  :====================================");
+
     }
 
+    public static void printDefectReport(List<Issue> defects){
+        List<Issue> invalidIssue = defects.stream().filter(p->!p.isValidBug()).collect(Collectors.toList());
+        System.out.println("==== Invalid/total In-sprint defects: "+ invalidIssue.size() + " / " + defects.size());
+        if(!defects.isEmpty()) {
+            System.out.println("---- Invalid: ");
+            invalidIssue.stream().forEach(n -> System.out.println(n));
+            System.out.println("---- Valid: ");
+            defects.stream().filter(p -> p.isValidBug()).forEach(n -> System.out.println(n));
+        }
+    }
 
-    private static void printReport(List<DeveloperProductivity> prod_list, Map<String, List<Issue>> isd_map, List<Issue> defects) {
-        System.out.println("=======================:  Productivity  :======================================");
-        for(DeveloperProductivity dp : prod_list) {
-            System.out.println(dp.toString());
-            for(Issue issue : dp.getIssues()){
-                SprintChecker.printLog(issue, "");
+    private static Map<String, DeveloperView> getDeveloperView(List<Issue> issues, List<Issue> defects) {
+        Map<String, DeveloperView> dvs = new HashMap<>();
+
+        for(Issue i: issues){
+            if(i.getDeveloper() == null)
+                continue;
+
+            if(!dvs.containsKey(i.getDeveloper().getDisplayName())){
+                DeveloperView dv = new DeveloperView(i.getDeveloper().getDisplayName());
+                dvs.put(dv.getDeveloper(), dv);
             }
-            System.out.println();
+
+            dvs.get(i.getDeveloper().getDisplayName()).getIssues().add(i);
         }
 
-        System.out.println("=====================:  Quality  :==========================================");
-        System.out.println("-------------------- Total in-sprint defects: (" + defects.size() +") ---------------------- ");
+        for(Issue i: defects){
+            if(i.getDefectIntroducedBy() == null){
+                continue;
+            }
 
-        int total_valid = 0;
+            if(!dvs.containsKey(i.getDefectIntroducedBy().getDisplayName())){
+                continue;
+            }
 
-        for(String dcb : isd_map.keySet()){
-            List<Issue> isds = isd_map.get(dcb);
-            defects.removeIf(n->isds.stream().anyMatch(p->p.getKey() == n.getKey()));
-            total_valid += isd_map.get(dcb).size();
-            System.out.println(dcb + ", ISD count: (" + isd_map.get(dcb).size() +")");
-            isd_map.get(dcb).stream().forEach(n-> SprintChecker.printLog(n, "["+ (n.getResolution() == null ? "Unresolved":n.getResolution().getName()) + "]"));
+            dvs.get(i.getDefectIntroducedBy().getDisplayName()).getDefects().add(i);
         }
-        System.out.println("-------------------- Total valid in-sprint defects: (" + total_valid + ") -------------------- ");
 
-        defects.stream().forEach(n-> SprintChecker.printLog(n, "["+ (n.getAssignee() == null ? "Unassigned" : n.getAssignee().getDisplayName()) + "] ["+ (n.getResolution() == null ? "Unresolved":n.getResolution().getName()) + "]"));
-        System.out.println("-------------------- Total invalid / unresolved ISD: (" + defects.size() +") ----------------- ");
+        return dvs;
     }
 
+    private static Map<String, TesterView> getTesterView(List<Issue> issues, List<Issue> defects) {
+        Map<String, TesterView> dvs = new HashMap<>();
 
-    private static void renderingJade(Sprint sprint, List<com.ljn.DeveloperProductivity> prod_list, Map<String, List<Issue>> isd_map) throws java.io.IOException {
+        for(Issue i: issues){
+            if(i.getTester() == null)
+                continue;
+
+            if(!dvs.containsKey(i.getTester().getDisplayName())){
+                TesterView dv = new TesterView(i.getTester().getDisplayName());
+                dvs.put(dv.getTester(), dv);
+            }
+
+            dvs.get(i.getTester().getDisplayName()).getIssues().add(i);
+        }
+
+        for(Issue i: defects){
+
+            if(!dvs.containsKey(i.getReporter().getDisplayName())){
+                continue;
+            }
+
+            dvs.get(i.getReporter().getDisplayName()).getDefects().add(i);
+        }
+
+        return dvs;
+    }
+    private static void renderingJade(Sprint sprint, List<DeveloperProductivity> prod_list, Map<String, List<Issue>> isd_map) throws java.io.IOException {
         java.util.Map<String, Object> model = new java.util.HashMap<String, Object>();
         model.put("pageName", sprint.getName());
         model.put("products", prod_list);
@@ -182,17 +224,7 @@ public class JiraHelper {
         return html;
     }
 
-    private static void attachISDtoProductivity(List<DeveloperProductivity> list, Map<String, List<Issue>> map){
-        //TODO: we need to consider that the issue might be led by someone who did not output anything
-        for (DeveloperProductivity dp : list) {
-            if(map.containsKey(dp.developer)){
-                dp.setIsdCount(map.get(dp.developer).size());
-                dp.setDefects(map.get(dp.developer));
-            }
-        }
-    }
-
-    private static void exportProdData(Sprint sprint, List<DeveloperProductivity> list) {
+    private static void exportProdData(Sprint sprint, Map<String, DeveloperView> dvs) {
         try (Workbook wb = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) { //or new HSSFWorkbook();
             Sheet sheet = wb.createSheet(sprint.getName() + " - Productivity");
 
@@ -223,34 +255,34 @@ public class JiraHelper {
             rownumber = 1;
 
             colnumber = 0; //reset
-            for(DeveloperProductivity dp : list) {
+            for(DeveloperView dv : dvs.values()) {
                 colnumber = 0;
                 Row row = sheet.createRow(rownumber);
-                row.createCell(colnumber).setCellValue(dp.developer);
+                row.createCell(colnumber).setCellValue(dv.getDeveloper());
                 colnumber++;
 
                 //SP
-                row.createCell(colnumber).setCellValue(dp.getTotalSP());
+                row.createCell(colnumber).setCellValue(dv.storyPoints());
                 colnumber++;
 
                 //ISD
-                row.createCell(colnumber).setCellValue(dp.getIsdCount());
+                row.createCell(colnumber).setCellValue(dv.defectCount());
                 colnumber++;
 
                 //ISD/SP
-                row.createCell(colnumber).setCellValue(String.format("%.2f", dp.getISDPerSP()));
+                row.createCell(colnumber).setCellValue(String.format("%.2f", dv.qualityFactor()));
                 colnumber++;
 
                 //ER
-                row.createCell(colnumber).setCellValue(dp.getErStoryPoints());
+                row.createCell(colnumber).setCellValue(dv.featureStoryPoints());
                 colnumber++;
 
                 //BUG
-                row.createCell(colnumber).setCellValue(dp.getBugStoryPoints());
+                row.createCell(colnumber).setCellValue(dv.bugStoryPoints());
                 colnumber++;
 
                 //BUG count
-                row.createCell(colnumber).setCellValue(dp.getBugCount());
+                row.createCell(colnumber).setCellValue(dv.bugCount());
                 colnumber++;
 
                 rownumber++;
@@ -299,7 +331,6 @@ public class JiraHelper {
         }
     }
 
-
     public static Sprint getSprint(JiraClient jira, int team, int sprint){
 
         String sprintNamePattern = "ANE Sprint %d - Roadmap %d";
@@ -320,45 +351,7 @@ public class JiraHelper {
         return null;
     }
 
-    public static Map<String, List<Issue>> getISD(List<Issue> issues){
-        if(issues.isEmpty())
-            return new HashMap<>();
 
-        List<Issue> invalidList = new java.util.ArrayList<>();
-        Map<String, List<Issue>> validList = new TreeMap<>(String::compareTo);
-
-        for(Issue issue : issues){
-            net.rcarz.jiraclient.Resolution ro = issue.getResolution();
-            if(ro == null)
-                continue;
-            if(!ro.getName().equals("Fixed"))
-            {
-                invalidList.add(issue);
-                if(issue.getDefectIntroducedBy() != null && !issue.getDefectIntroducedBy().getDisplayName().equals("Not Applicable")){
-                    SprintChecker.printLog(issue, " defect created by error: " + issue.getDefectIntroducedBy().getDisplayName());
-                }
-                continue;
-            }else{
-                if(issue.getDefectIntroducedBy()==null)
-                {
-                    SprintChecker.printLog(issue, "defect introduced by is empty!");
-                    continue;
-                }else{
-                    String dcb = issue.getDefectIntroducedBy().getDisplayName();
-
-                    if(!validList.containsKey(dcb)){
-                        validList.put(dcb, new java.util.ArrayList<Issue>());
-                    }
-                    validList.get(dcb).add(issue);
-                }
-            }
-        }
-
-        //System.out.println("Invalid ISD: " + invalidList.size());
-        //invalidList.stream().forEach(n-> SprintChecker.printLog(n, ""));
-
-        return validList;
-    }
 
 
 

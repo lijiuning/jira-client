@@ -1,4 +1,4 @@
-package com.ljn;
+package com.ljn.utils;
 
 public class Emoji {
     public static String Status(String status){
