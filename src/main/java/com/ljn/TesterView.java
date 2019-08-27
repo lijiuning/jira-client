@@ -3,7 +3,9 @@ package com.ljn;
 import net.rcarz.jiraclient.Issue;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TesterView {
@@ -122,4 +124,31 @@ public class TesterView {
         System.out.println("");
     }
 
+    public static Map<String, TesterView> getTesterView(List<Issue> issues, List<Issue> defects) {
+        Map<String, TesterView> dvs = new HashMap<>();
+
+        for(Issue i: issues){
+            if(i.getTester() == null)
+                continue;
+
+            if(!dvs.containsKey(i.getTester().getDisplayName())){
+                TesterView dv = new TesterView(i.getTester().getDisplayName());
+                dvs.put(dv.getTester(), dv);
+            }
+
+            dvs.get(i.getTester().getDisplayName()).getIssues().add(i);
+        }
+
+        if(defects != null) {
+            for (Issue i : defects) {
+
+                if (!dvs.containsKey(i.getReporter().getDisplayName())) {
+                    continue;
+                }
+
+                dvs.get(i.getReporter().getDisplayName()).getDefects().add(i);
+            }
+        }
+        return dvs;
+    }
 }

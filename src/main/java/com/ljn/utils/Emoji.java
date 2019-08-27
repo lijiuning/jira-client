@@ -1,7 +1,11 @@
 package com.ljn.utils;
 
 public class Emoji {
+    public static boolean iconMode = false;
     public static String Status(String status){
+        if(!iconMode)
+            return "";
+
         switch (status.toLowerCase()){
             case "test":
             case "review":
@@ -9,6 +13,7 @@ public class Emoji {
             case "open":
                 return "⚪";
             case "in progress":
+            case "design":
                 return "\uD83D\uDD35";
             case "closed":
                 return "\uD83C\uDFC1";
@@ -22,6 +27,24 @@ public class Emoji {
     }
 
     public static String Type(String type){
+        if(!iconMode)
+        {
+            switch (type.toLowerCase()){
+                case "bug":
+                    return "Bug.";
+                case "enhancement":
+                    return "Enh.";
+                case "requirement/user story":
+                    return "Fte.";
+                case "task":
+                    return "Tsk.";
+                case "bug sub-task":
+                    return "Isd.";
+                default:
+                    return type;
+            }
+        }
+
         switch (type.toLowerCase()){
             case "bug":
                 return "\uD83D\uDC1E";

@@ -49,6 +49,7 @@ public abstract class AgileResource {
     private long id = 0;
     private String name;
     private String self;
+
     private JSONObject attributes = new JSONObject();
 
     /**
@@ -139,8 +140,8 @@ public abstract class AgileResource {
      * @throws JiraException when the retrieval fails
      */
     static <T extends AgileResource> List<T> list(
-            RestClient restclient, Class<T> type, String url) throws JiraException {
-        return list(restclient, type, url, "values");
+            RestClient restclient, Class<T> type, String url, int startAt) throws JiraException {
+        return list(restclient, type, url, "values", startAt);
     }
 
     /**
@@ -154,12 +155,12 @@ public abstract class AgileResource {
      * @throws JiraException when the retrieval fails
      */
     static <T extends AgileResource> List<T> list(
-            RestClient restclient, Class<T> type, String url, String listName) throws JiraException {
+            RestClient restclient, Class<T> type, String url, String listName, int startAt) throws JiraException {
 
         JSON result;
         try {
             java.util.Map<String, String> queryParams = new java.util.HashMap<String, String>();
-            queryParams.put("startAt", String.valueOf(70));
+            queryParams.put("startAt", String.valueOf(startAt));
             result = restclient.get(url, queryParams);
         } catch (Exception ex) {
             throw new JiraException("Failed to retrieve a list of " + type.getSimpleName() + " : " + url, ex);

@@ -34,5 +34,14 @@ public class CommandArgs {
 		return export;
 	}
 
+	@CommandLineParameter(value = "p") private boolean planMode;
+	public boolean isPlanMode() {
+		return planMode;
+	}
+
+	@CommandLineParameter(value = "i") private boolean iconMode;
+	public boolean isIconMode() {
+		return iconMode;
+	}
 
 }

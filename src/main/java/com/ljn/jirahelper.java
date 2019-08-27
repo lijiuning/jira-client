@@ -1,6 +1,7 @@
 package com.ljn;
 
 import com.ljn.utils.CommandArgs;
+import com.ljn.utils.Emoji;
 import com.ljn.utils.SysPath;
 import com.ljn.utils.WorkdayUtils;
 import de.neuland.jade4j.Jade4J;
@@ -26,7 +27,7 @@ public class JiraHelper {
     public static String JIRA_URL = null;
     public static String USER = null;
     public static String PASSWORD = null;
-    public static int SEARCH_ON_BOARD = 1011;
+    public static int SEARCH_ON_BOARD = 1282;
     public static String JQL_STANDARD_ISSUES_SPRINT = "sprint = %d and issuetype in standardIssueTypes()";
     public static String JQL_IN_SPRINT_DEFECTS = "issuetype= 'Bug Sub-Task' and sprint = %d";
 
@@ -56,6 +57,8 @@ public class JiraHelper {
             return;
         }
 
+        Emoji.iconMode = testParameter.isIconMode();
+
         BasicCredentials creds = new BasicCredentials(USER, PASSWORD);
         JiraClient jira = null;
         try {
@@ -67,9 +70,32 @@ public class JiraHelper {
         if(jira == null)
             return;
 
+        printSprintReport(testParameter, sprint_number, team_number, jira);
+
+
+        /*
+        int days = 180;
+        String developer = "ryuan";
+        printDeveloperStatistics(jira, days, developer);
+
+        developer = "fgao";
+        printDeveloperStatistics(jira, days, developer);
+        */
+    }
+
+    private static void printDeveloperStatistics(JiraClient jira, int days, String developer) {
+        String issue_jql = "Developer = '"+ developer + "' AND resolved > -" + days + "d AND issuetype in standardIssueTypes()";
+        String defects_jql = "'Defect Introduced By' = '"+ developer + "' AND created > -" + days + "d";
+
+        Map<String, DeveloperView> dv = getDeveloperView(jira, issue_jql, defects_jql);
+        DeveloperView.printStatistics(dv, days);
+        dv.values().stream().forEach(p -> { System.out.println(p.toString());});
+    }
+
+    private static void printSprintReport(CommandArgs testParameter, int sprint_number, int team_number, JiraClient jira) {
         Sprint sprint = getSprint(jira, team_number, sprint_number);
         if(sprint == null) {
-            System.out.println("Please specifiy a valid Sprint number.");
+            System.out.println("Please specify a valid Sprint number.");
             return;
         }
 
@@ -101,38 +127,62 @@ public class JiraHelper {
             SprintChecker.checkFields(issues);
 
 
-        List<Issue> defects = null;
+        if(!testParameter.isPlanMode()) {
+            List<Issue> defects = null;
+            try {
+                String isdjql = String.format(JQL_IN_SPRINT_DEFECTS, (int) sprint.getId());
+                defects = jira.searchIssues(isdjql).issues;
+            } catch (JiraException e) {
+                e.printStackTrace();
+            }
+
+            Map<String, DeveloperView> dvs = DeveloperView.getDeveloperView(issues, defects);
+            System.out.println();
+            System.out.println("========================:     DEV VIEW    :====================================");
+            dvs.values().stream().forEach(p -> p.printReport());
+            printDefectReport(defects);
+
+
+            Map<String, TesterView> tvs = TesterView.getTesterView(issues, defects);
+            System.out.println();
+            System.out.println("========================:     QA VIEW    :====================================");
+            tvs.values().stream().forEach(p -> p.printReport());
+
+            System.out.println("========================:     STATISTICS VIEW    :====================================");
+            DeveloperView.printStatistics(dvs);
+
+            if (testParameter.isExport())
+                exportProdData(sprint, dvs);
+
+            HourLoggedChecker loggedChecker = new HourLoggedChecker(sprint, jira);
+            System.out.println("========================:   LOGGED HOURS  :====================================");
+            loggedChecker.Run();
+
+
+            System.out.println("========================:   REPORT END  :====================================");
+        }else{
+            //plan mode
+
+            printCurrentCommitment(issues);
+        }
+    }
+
+    public static Map<String, DeveloperView> getDeveloperView(JiraClient jira, String issue_jql, String defects_jql){
         try {
-            String isdjql = String.format(JQL_IN_SPRINT_DEFECTS, (int)sprint.getId());
-            defects = jira.searchIssues(isdjql).issues;
+            return DeveloperView.getDeveloperView(jira.searchIssues(issue_jql).issues, jira.searchIssues(defects_jql).issues);
         } catch (JiraException e) {
             e.printStackTrace();
         }
-
-        Map<String, DeveloperView> dvs = getDeveloperView(issues, defects);
-        System.out.println();
-        System.out.println("========================:     DEV VIEW    :====================================");
-        dvs.values().stream().forEach(p->p.printReport());
-
-        printDefectReport(defects);
-
-
-        Map<String, TesterView> tvs = getTesterView(issues, defects);
-        System.out.println();
-        System.out.println("========================:     QA VIEW    :====================================");
-        tvs.values().stream().forEach(p->p.printReport());
-
-        if(testParameter.isExport())
-            exportProdData(sprint, dvs);
-
-        HourLoggedChecker loggedChecker = new HourLoggedChecker(sprint, jira);
-        System.out.println("========================:   LOGGED HOURS  :====================================");
-        loggedChecker.Run();
-
-
-        System.out.println("========================:   REPORT END  :====================================");
-
+        return null;
     }
+
+    private static void printCurrentCommitment(List<Issue> issues) {
+        System.out.println();
+        System.out.println("=====================: CURRENT COMMITMENT (workload balance) :==============================");
+        Map<String, DeveloperView> dvs = DeveloperView.getDeveloperViewByAssignee(issues);
+        dvs.values().stream().forEach(p -> System.out.println(p));
+    }
+
 
     public static void printDefectReport(List<Issue> defects){
         List<Issue> invalidIssue = defects.stream().filter(p->!p.isValidBug()).collect(Collectors.toList());
@@ -145,62 +195,7 @@ public class JiraHelper {
         }
     }
 
-    private static Map<String, DeveloperView> getDeveloperView(List<Issue> issues, List<Issue> defects) {
-        Map<String, DeveloperView> dvs = new HashMap<>();
 
-        for(Issue i: issues){
-            if(i.getDeveloper() == null)
-                continue;
-
-            if(!dvs.containsKey(i.getDeveloper().getDisplayName())){
-                DeveloperView dv = new DeveloperView(i.getDeveloper().getDisplayName());
-                dvs.put(dv.getDeveloper(), dv);
-            }
-
-            dvs.get(i.getDeveloper().getDisplayName()).getIssues().add(i);
-        }
-
-        for(Issue i: defects){
-            if(i.getDefectIntroducedBy() == null){
-                continue;
-            }
-
-            if(!dvs.containsKey(i.getDefectIntroducedBy().getDisplayName())){
-                continue;
-            }
-
-            dvs.get(i.getDefectIntroducedBy().getDisplayName()).getDefects().add(i);
-        }
-
-        return dvs;
-    }
-
-    private static Map<String, TesterView> getTesterView(List<Issue> issues, List<Issue> defects) {
-        Map<String, TesterView> dvs = new HashMap<>();
-
-        for(Issue i: issues){
-            if(i.getTester() == null)
-                continue;
-
-            if(!dvs.containsKey(i.getTester().getDisplayName())){
-                TesterView dv = new TesterView(i.getTester().getDisplayName());
-                dvs.put(dv.getTester(), dv);
-            }
-
-            dvs.get(i.getTester().getDisplayName()).getIssues().add(i);
-        }
-
-        for(Issue i: defects){
-
-            if(!dvs.containsKey(i.getReporter().getDisplayName())){
-                continue;
-            }
-
-            dvs.get(i.getReporter().getDisplayName()).getDefects().add(i);
-        }
-
-        return dvs;
-    }
     private static void renderingJade(Sprint sprint, List<DeveloperProductivity> prod_list, Map<String, List<Issue>> isd_map) throws java.io.IOException {
         java.util.Map<String, Object> model = new java.util.HashMap<String, Object>();
         model.put("pageName", sprint.getName());
@@ -254,8 +249,12 @@ public class JiraHelper {
 
             rownumber = 1;
 
+            ArrayList<DeveloperView> l = new ArrayList<>();
+            l.addAll(dvs.values());
+            l.sort(Comparator.comparing(p->p.getDeveloper()));
+
             colnumber = 0; //reset
-            for(DeveloperView dv : dvs.values()) {
+            for(DeveloperView dv : l) {
                 colnumber = 0;
                 Row row = sheet.createRow(rownumber);
                 row.createCell(colnumber).setCellValue(dv.getDeveloper());
@@ -339,7 +338,7 @@ public class JiraHelper {
         try {
             net.rcarz.jiraclient.agile.AgileClient ac = new net.rcarz.jiraclient.agile.AgileClient(jira);
             net.rcarz.jiraclient.agile.Board dl =  ac.getBoard(SEARCH_ON_BOARD);
-            java.util.List<Sprint> listSprints = dl.getSprints();
+            java.util.List<Sprint> listSprints = dl.getSprints(80);
             listSprints.sort((o1, o2) -> Long.compare(o2.getId(), o1.getId()));
             for(Sprint b : listSprints){
                 if(b.getName().equals(sprintName))

@@ -70,16 +70,16 @@ public class Sprint extends AgileResource {
      * @return The list of sprints associated to the board.
      * @throws JiraException when the retrieval fails
      */
-    public static List<Sprint> getAll(RestClient restclient, long boardId) throws JiraException {
-        return AgileResource.list(restclient, Sprint.class, RESOURCE_URI + "board/" + boardId + "/sprint");
+    public static List<Sprint> getAll(RestClient restclient, long boardId, int startAt) throws JiraException {
+        return AgileResource.list(restclient, Sprint.class, RESOURCE_URI + "board/" + boardId + "/sprint", startAt);
     }
 
     /**
      * @return All issues in the Sprint.
      * @throws JiraException when the retrieval fails
      */
-    public List<Issue> getIssues() throws JiraException {
-        return AgileResource.list(getRestclient(), Issue.class, RESOURCE_URI + "sprint/" + getId() + "/issue", "issues");
+    public List<Issue> getIssues(int startAt) throws JiraException {
+        return AgileResource.list(getRestclient(), Issue.class, RESOURCE_URI + "sprint/" + getId() + "/issue", "issues", startAt);
     }
 
     @Override

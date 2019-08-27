@@ -1608,10 +1608,7 @@ public class Issue extends Resource {
             description += String.format("(%2.1f)", getStoryPoints());
 
         String overdue_str = "";
-        if(!isDone() && getDueDate() == null)
-        {
-            overdue_str +="\uD83D\uDD14 \t";
-        }else if(isOverdue()){
+        if(isOverdue()){
             overdue_str +="\uD83D\uDD14 <" + DateFormat.getDateInstance(DateFormat.DEFAULT).format(getDueDate()) + "> ";
         }
         return String.format("%s\t%s/browse/%s %s %s %s. %s", Emoji.Type(getIssueType().getName()), JiraHelper.JIRA_URL, getKey(), Emoji.Status(getStatus().getName()), description, getSummary(), overdue_str);
@@ -1622,7 +1619,7 @@ public class Issue extends Resource {
         String overdue_str = "";
         if(!isDone() && getDueDate() == null)
         {
-            overdue_str +="\uD83D\uDD14 \t";
+            //overdue_str +="\uD83D\uDD14 \t";
         }else if(isOverdue()){
             overdue_str +="\uD83D\uDD14 <" + DateFormat.getDateInstance(DateFormat.DEFAULT).format(getDueDate()) + "> ";
         }
@@ -1834,7 +1831,7 @@ public class Issue extends Resource {
     }
 
     public boolean isDone(){
-        if(this.getStatus().getName().toLowerCase().equals("closed") || this.getStatus().getName().toLowerCase().equals("test")){
+        if(this.getStatus().getName().toLowerCase().equals("closed") || this.getStatus().getName().toLowerCase().equals("test") || this.getStatus().getName().toLowerCase().equals("review")){
             return true;
         }
         return false;

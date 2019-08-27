@@ -62,7 +62,7 @@ public class AgileClient {
      * @throws JiraException when something goes wrong
      */
     public List<Board> getBoards() throws JiraException {
-        return Board.getAll(restclient);
+        return Board.getAll(restclient, 0);
     }
 
     /**

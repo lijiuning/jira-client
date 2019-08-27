@@ -14,6 +14,11 @@ public class SprintChecker {
             return;
 
         System.out.println("========================: CHECKING SPRINT :====================================");
+        System.out.println("Checking assignee ....");
+        for (Issue issue : issues) {
+            checkAssigneeIsEmpty(issue);
+        }
+
         System.out.println("Checking story points ....");
         for (Issue issue : issues) {
             checkStoryPointIsEmpty(issue);
@@ -40,26 +45,33 @@ public class SprintChecker {
 
     private static void checkCodeReviewerIsEmpty(Issue issue) {
         if(issue.isCodeReviewerRequired() && issue.getCodeReviewer() == null){
-            printLog(issue, "Code reviewer is empty!" + (issue.getDeveloper() == null? "[EmptyDeveloper]" : "[" + issue.getDeveloper().getDisplayName() + "]"));
+
+            printLog(issue, "[" + issue.getAssignee()==null?"":issue.getAssignee().getDisplayName() + "]   <Code reviewer is empty!> " + (issue.getDeveloper() == null? "[Empty Developer]" : "[" + issue.getDeveloper().getDisplayName() + "]"));
         }
     }
 
     private static void checkTesterIsEmpty(Issue issue){
         if(issue.isTesterRequired() && issue.getTester() == null){
-            printLog(issue, "Tester is empty!");
+            printLog(issue, "  <Tester is empty!>");
         }
     }
 
     private static void checkStoryPointIsEmpty(Issue issue) {
         Double sp = issue.getStoryPoints();
-        if (sp == null) {
-            printLog(issue, "Story point is empty! (Issue type: " + issue.getIssueType().getName() + ")");
+        if (sp == null || sp == 0) {
+            printLog(issue, "   <Story point is empty!>");
+        }
+    }
+
+    private static void checkAssigneeIsEmpty(Issue issue) {
+        if (issue.getAssignee() == null) {
+            printLog(issue, "   <Assignee is empty!>");
         }
     }
 
     private static void checkDeveloperIsEmpty(Issue issue) {
-        // skip the non-development tasks
-        if(!issue.isDevTask())
+        // skip the qa tasks
+        if(issue.isQATask())
             return;
 
         //skip the dev misc
@@ -67,9 +79,13 @@ public class SprintChecker {
             return;
         }
 
+        if(issue.getAssignee() == null){
+            return;
+        }
+
         User dev = issue.getDeveloper();
         if (dev == null) {
-            printLog(issue, "Developer is empty!");
+            printLog(issue, "[" + issue.getAssignee().getDisplayName() + "]   <Developer is empty!>");
         }
     }
 
@@ -90,7 +106,7 @@ public class SprintChecker {
         String overdue_str = "";
         if(!issue.isDone() && issue.getDueDate() == null)
         {
-            overdue_str +="\uD83D\uDD14 \t";
+            //overdue_str +="\uD83D\uDD14 \t";
         }else if(issue.isOverdue()){
             overdue_str +="\uD83D\uDD14 <" + DateFormat.getDateInstance(DateFormat.DEFAULT).format(issue.getDueDate()) + "> ";
         }

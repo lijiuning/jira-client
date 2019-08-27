@@ -30,7 +30,7 @@ class SprintTest extends AbstractResourceTest {
         when(mockRestClient.get(AgileResource.RESOURCE_URI + "board/" + JSONResources.SPRINT_ORIGIN_BOARD_ID + "/sprint"))
                 .thenReturn(JSONSerializer.toJSON(JSONResources.LIST_OF_SPRINTS))
 
-        List<Sprint> sprints = Sprint.getAll(mockRestClient, JSONResources.SPRINT_ORIGIN_BOARD_ID);
+        List<Sprint> sprints = Sprint.getAll(mockRestClient, JSONResources.SPRINT_ORIGIN_BOARD_ID, 0);
 
         assertThat sprints, new IsNot<>(new IsNull())
         assertThat sprints.size(), new IsEqual<Integer>(2)
@@ -46,7 +46,7 @@ class SprintTest extends AbstractResourceTest {
         expectedException.expect(JiraException.class);
         expectedException.expectMessage("Failed to retrieve a list of Sprint : /rest/agile/1.0/board/" + JSONResources.SPRINT_ORIGIN_BOARD_ID + "/sprint");
 
-        Sprint.getAll(mockRestClient, JSONResources.SPRINT_ORIGIN_BOARD_ID);
+        Sprint.getAll(mockRestClient, JSONResources.SPRINT_ORIGIN_BOARD_ID, 0);
     }
 
     @Test
@@ -79,7 +79,7 @@ class SprintTest extends AbstractResourceTest {
         when(mockRestClient.get(AgileResource.RESOURCE_URI + "sprint/${JSONResources.SPRINT_ID}/issue"))
                 .thenReturn(JSONSerializer.toJSON(JSONResources.LIST_OF_ISSUES))
 
-        List<Issue> issues = mockSprint.getIssues();
+        List<Issue> issues = mockSprint.getIssues(0);
 
         assertThat issues, new IsNot<>(new IsNull())
         assertThat issues.size(), new IsEqual<Integer>(4)

@@ -64,8 +64,8 @@ public class Board extends AgileResource {
      * @return a list of boards
      * @throws JiraException when the retrieval fails
      */
-    public static List<Board> getAll(RestClient restclient) throws JiraException {
-        return AgileResource.list(restclient, Board.class, RESOURCE_URI + "board");
+    public static List<Board> getAll(RestClient restclient, int startAt) throws JiraException {
+        return AgileResource.list(restclient, Board.class, RESOURCE_URI + "board", startAt);
     }
 
     @Override
@@ -85,8 +85,8 @@ public class Board extends AgileResource {
      * @return All sprints related to the current board.
      * @throws JiraException when the retrieval fails
      */
-    public List<Sprint> getSprints() throws JiraException {
-        return Sprint.getAll(getRestclient(), getId());
+    public List<Sprint> getSprints(int startAt) throws JiraException {
+        return Sprint.getAll(getRestclient(), getId(), startAt);
     }
 
     /**
@@ -94,7 +94,7 @@ public class Board extends AgileResource {
      * @throws JiraException when the retrieval fails
      */
     public List<Issue> getBacklog() throws JiraException {
-        return AgileResource.list(getRestclient(), Issue.class, RESOURCE_URI + "board/" + getId() + "/backlog", "issues");
+        return AgileResource.list(getRestclient(), Issue.class, RESOURCE_URI + "board/" + getId() + "/backlog", "issues", 0);
     }
 
     /**
@@ -102,7 +102,7 @@ public class Board extends AgileResource {
      * @throws JiraException when the retrieval fails
      */
     public List<Issue> getIssuesWithoutEpic() throws JiraException {
-        return AgileResource.list(getRestclient(), Issue.class, RESOURCE_URI + "board/" + getId() + "/epic/none/issue", "issues");
+        return AgileResource.list(getRestclient(), Issue.class, RESOURCE_URI + "board/" + getId() + "/epic/none/issue", "issues", 0);
     }
 
     /**
@@ -110,7 +110,7 @@ public class Board extends AgileResource {
      * @throws JiraException when the retrieval fails
      */
     public List<Epic> getEpics() throws JiraException {
-        return AgileResource.list(getRestclient(), Epic.class, RESOURCE_URI + "board/" + getId() + "/epic");
+        return AgileResource.list(getRestclient(), Epic.class, RESOURCE_URI + "board/" + getId() + "/epic", 0);
     }
 }
 

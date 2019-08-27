@@ -31,7 +31,7 @@ class AgileClientDemoTest {
     static void demoSprint(AgileClient agileClient) {
         println "********** Sprint demo"
         // Retrieve all sprints
-        List<Sprint> sprints = Sprint.getAll(agileClient.getRestclient(), BOARD_ID)
+        List<Sprint> sprints = Sprint.getAll(agileClient.getRestclient(), BOARD_ID, 0)
         println sprints
 
         // Retrieve a specific Sprint
@@ -43,7 +43,7 @@ class AgileClientDemoTest {
         println sprint1.getSelfURL()
 
         // Retrieve issues associated to the sprint
-        List<Issue> issues = sprint1.getIssues()
+        List<Issue> issues = sprint1.getIssues(0)
         println issues
     }
 
