@@ -1611,7 +1611,7 @@ public class Issue extends Resource {
         if(isOverdue()){
             overdue_str +="\uD83D\uDD14 <" + DateFormat.getDateInstance(DateFormat.DEFAULT).format(getDueDate()) + "> ";
         }
-        return String.format("%s\t%s/browse/%s %s %s %s. %s", Emoji.Type(getIssueType().getName()), JiraHelper.JIRA_URL, getKey(), Emoji.Status(getStatus().getName()), description, getSummary(), overdue_str);
+        return String.format("%s\t%sbrowse/%s %s %s %s. %s", Emoji.Type(getIssueType().getName()), JiraHelper.JIRA_URL, getKey(), Emoji.Status(getStatus().getName()), description, getSummary(), overdue_str);
     }
 
     private String inSprintDefectDescription(){
@@ -1628,7 +1628,7 @@ public class Issue extends Resource {
                 + "] ["+ (getResolution() == null ? "Unresolved" : getResolution().getName()) + "] ["
                 + (getDefectIntroducedBy() == null ? "Empty Defect Introduced by" : getDefectIntroducedBy().getDisplayName()) + "]";
 
-        return String.format("\t|----%s\t%s/browse/%s %s %s %s %s %s", Emoji.Type(getIssueType().getName()), JiraHelper.JIRA_URL, getKey(), Emoji.Status(getStatus().getName()), description, getSummary(), overdue_str, extraInfo);
+        return String.format("\t|----%s\t%sbrowse/%s %s %s %s %s %s", Emoji.Type(getIssueType().getName()), JiraHelper.JIRA_URL, getKey(), Emoji.Status(getStatus().getName()), description, getSummary(), overdue_str, extraInfo);
     }
 
     public ChangeLog getChangeLog() {

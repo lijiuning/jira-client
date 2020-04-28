@@ -15,7 +15,7 @@ public class WorkdayUtils {
     private static final int START_YEAR = 2017;
 
     /** 预设工作日数据的结束年份 */
-    private static final int END_YEAR = 2019;
+    private static final int END_YEAR = 2020;
 
     /** 起始日期处理策略 */
     private static final BoundaryDateHandlingStrategy START_DATE_HANDLING_STRATEGY = date -> {
@@ -201,6 +201,15 @@ public class WorkdayUtils {
         WORKDAY_MAP.put(20191003, false);
         WORKDAY_MAP.put(20191004, false);
         WORKDAY_MAP.put(20191007, false);
+        //--------------------2020----------------
+        WORKDAY_MAP.put(20200101, false);
+        WORKDAY_MAP.put(20200124, false);
+        WORKDAY_MAP.put(20200119, true);
+        WORKDAY_MAP.put(20200127, false);
+        WORKDAY_MAP.put(20200128, false);
+        WORKDAY_MAP.put(20200129, false);
+        WORKDAY_MAP.put(20200130, false);
+        WORKDAY_MAP.put(20200131, false);
     }
 
     /**

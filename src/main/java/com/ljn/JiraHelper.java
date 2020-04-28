@@ -27,7 +27,7 @@ public class JiraHelper {
     public static String JIRA_URL = null;
     public static String USER = null;
     public static String PASSWORD = null;
-    public static int SEARCH_ON_BOARD = 1282;
+    public static int SEARCH_ON_BOARD = 1380;
     public static String JQL_STANDARD_ISSUES_SPRINT = "sprint = %d and issuetype in standardIssueTypes()";
     public static String JQL_IN_SPRINT_DEFECTS = "issuetype= 'Bug Sub-Task' and sprint = %d";
 
@@ -338,7 +338,7 @@ public class JiraHelper {
         try {
             net.rcarz.jiraclient.agile.AgileClient ac = new net.rcarz.jiraclient.agile.AgileClient(jira);
             net.rcarz.jiraclient.agile.Board dl =  ac.getBoard(SEARCH_ON_BOARD);
-            java.util.List<Sprint> listSprints = dl.getSprints(80);
+            java.util.List<Sprint> listSprints = dl.getSprints(480);
             listSprints.sort((o1, o2) -> Long.compare(o2.getId(), o1.getId()));
             for(Sprint b : listSprints){
                 if(b.getName().equals(sprintName))
